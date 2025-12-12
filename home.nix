@@ -150,6 +150,11 @@ let
 
   vl_convert = pkgs.callPackage ./workflow/nixpkgs/vl-convert-python.nix {};
 
+  muon = pkgs.callPackage ./workflow/nixpkgs/muon.nix {};
+
+  tangram-sc = pkgs.callPackage ./workflow/nixpkgs/tangram-sc.nix {};
+
+  #groovy = pkgs.callPackage ./workflow/nixpkgs/groovy.nix { };
 
   pythonDeps = with pkgs; [
     ((python310.withPackages (p: with p; [
@@ -157,11 +162,14 @@ let
       snakemake
 
       # VISUALIZATION
+      altair
       altair-saver
       matplotlib
       plotly
       cairosvg
       vl_convert
+      pygraphviz
+      opentsne
 
       # SINGLE-CELL ANALYSIS
       celltypist
@@ -169,6 +177,7 @@ let
       harmonypy
       bbknn
       mnnpy
+      muon
       pyensembl
       scanpy
       scrub
@@ -179,6 +188,7 @@ let
       scranpy
       scranPY
       scvi-tools
+      tangram-sc
       tssenrich
 
       # RNA VELOCITY
@@ -195,7 +205,6 @@ let
       loompy
       macs3
       pybedtools
-      pygraphviz
       pydot
       pysam
       tmc
@@ -219,6 +228,7 @@ let
       hdbscan
       dataset
       opencv4
+      lifelines
 
     ])).override (args: { ignoreCollisions = true; }))
   ];
@@ -237,15 +247,15 @@ let
                         turtle
                       ]);
 
-  pkgsLink_new = builtins.fetchTarball {
+  pkgsLink_R = builtins.fetchTarball {
       url = "https://github.com/NixOS/nixpkgs/archive/refs/tags/24.05.tar.gz";
       };
-  pkgs_new = import pkgsLink_new { inherit config; };
+  pkgs_R = import pkgsLink_R { inherit config; };
 
-  seuratdisk = pkgs_new.callPackage ./workflow/nixpkgs/seuratdisk.nix { };
+  seuratdisk = pkgs_R.callPackage ./workflow/nixpkgs/seuratdisk.nix { };
 
-  customR = pkgs_new.rWrapper.override {
-    packages = with pkgs_new.rPackages; [
+  customR = pkgs_R.rWrapper.override {
+    packages = with pkgs_R.rPackages; [
 
       anndata
       dplyr
@@ -259,9 +269,15 @@ let
       seuratdisk
       #scdeed
       resample
+      DESeq2
 
     ];
   };
+
+  pkgsLink_salmon = builtins.fetchTarball {
+      url = "https://github.com/NixOS/nixpkgs/archive/refs/tags/25.05.tar.gz";
+      };
+  pkgs_salmon = import pkgsLink_salmon { inherit config; };
 
   externalDeps = [
     pkgs.bedtools
@@ -283,6 +299,16 @@ let
     pkgs.pciutils
     pkgs.aria2
     customR
+    pkgs.htslib
+    pkgs.awscli2
+    pkgs_salmon.salmon
+    pkgs.bwa-mem2
+    pkgs.picard-tools
+    pkgs.tmux
+    pkgs.reptyr
+    pkgs.tree
+    pkgs.nextflow
+    pkgs.groovy
 
   ];
 
